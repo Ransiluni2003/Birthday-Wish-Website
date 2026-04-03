@@ -341,7 +341,7 @@ section{position:relative;z-index:1;}
 .puzzle-info span strong{color:var(--gold);}
 .puzzle-grid-wrap{display:flex;justify-content:center;margin-bottom:20px;}
 .puzzle-grid{display:grid;gap:3px;background:rgba(255,77,125,.2);border-radius:16px;overflow:hidden;box-shadow:0 0 40px rgba(255,77,125,.15);}
-.puzzle-tile{background-size:cover;background-repeat:no-repeat;cursor:pointer;transition:transform .1s,box-shadow .15s;}
+.puzzle-tile{background-size:cover;background-repeat:no-repeat;cursor:pointer;transition:transform .1s,box-shadow .15s;touch-action:manipulation;}
 .puzzle-tile:hover:not(.empty){transform:scale(1.04);z-index:2;box-shadow:0 0 20px rgba(255,77,125,.5);}
 .puzzle-tile.empty{background:rgba(11,6,16,.95)!important;cursor:default;}
 .puzzle-tile.correct{box-shadow:inset 0 0 0 2px rgba(192,132,252,.5);}
@@ -609,7 +609,7 @@ footer p{font-family:'Bodoni Moda',serif;font-style:italic;font-size:1.2rem;}
           <div class="vbc-play-btn">▶</div>
           <span class="vp-name">vedio1.mp4 — click to play</span>
         </div>
-        <video id="bigvid1" src="vedio1.mp4" style="display:none;" controls muted playsinline preload="auto" onerror="videoFail(1)"></video>
+        <video id="bigvid1" src="vedio1.mp4" style="display:none;" controls muted playsinline preload="metadata" onerror="videoFail(1)"></video>
       </div>
       <div class="vbc-footer"><span>🎬</span><span class="vbc-footer-label">Our first beautiful memory</span></div>
     </div>
@@ -620,7 +620,7 @@ footer p{font-family:'Bodoni Moda',serif;font-style:italic;font-size:1.2rem;}
           <div class="vbc-play-btn">▶</div>
           <span class="vp-name">vedio2.mp4 — click to play</span>
         </div>
-        <video id="bigvid2" src="vedio2.mp4" style="display:none;" controls onerror="videoFail(2)"></video>
+        <video id="bigvid2" src="vedio2.mp4" style="display:none;" controls muted playsinline preload="metadata" onerror="videoFail(2)"></video>
       </div>
       <div class="vbc-footer"><span>🎞️</span><span class="vbc-footer-label">Another moment frozen in time</span></div>
     </div>
@@ -775,6 +775,7 @@ const audio=document.getElementById('bgMusic');
 const bars=document.getElementById('musicBars');
 const mtBtn=document.getElementById('musicToggle');
 let playing=false;
+let mediaUnlocked=false;
 
 function setPlayingState(v){
   playing=v;
@@ -782,21 +783,45 @@ function setPlayingState(v){
   v?bars.classList.remove('paused'):bars.classList.add('paused');
 }
 
-// Try silent autoplay
+function unlockMedia(){
+  if(mediaUnlocked)return;
+  mediaUnlocked=true;
+  if(!playing){
+    audio.muted=false;
+    audio.volume=0.4;
+    audio.play().then(()=>setPlayingState(true)).catch(()=>{});
+  }
+}
+
+function bindMediaUnlock(){
+  const onFirstInteraction=()=>{
+    unlockMedia();
+    document.removeEventListener('click',onFirstInteraction);
+    document.removeEventListener('touchstart',onFirstInteraction);
+    document.removeEventListener('pointerdown',onFirstInteraction);
+    document.removeEventListener('keydown',onFirstInteraction);
+  };
+  document.addEventListener('click',onFirstInteraction,{once:true});
+  document.addEventListener('touchstart',onFirstInteraction,{once:true});
+  document.addEventListener('pointerdown',onFirstInteraction,{once:true});
+  document.addEventListener('keydown',onFirstInteraction,{once:true});
+}
+
+// Try autoplay, then unlock on first real interaction for mobile browsers.
 window.addEventListener('load',()=>{
   audio.volume=0.4;
   audio.play().then(()=>setPlayingState(true)).catch(()=>{
     setPlayingState(false);
-    // Start on first user interaction
-    document.addEventListener('click',()=>{
-      if(!playing){audio.play().then(()=>setPlayingState(true)).catch(()=>{});}
-    },{once:true});
+    bindMediaUnlock();
   });
 });
 
 function toggleMusic(){
   if(playing){audio.pause();setPlayingState(false);}
-  else{audio.play().then(()=>setPlayingState(true)).catch(()=>{});}
+  else{
+    audio.muted=false;
+    audio.play().then(()=>setPlayingState(true)).catch(()=>{});
+  }
 }
 
 /* ═══════════════════
@@ -908,11 +933,13 @@ function loadBigVideo(n, auto=false){
   document.getElementById('vbp'+n).style.display='none';
   const v=document.getElementById('bigvid'+n);
   v.style.display='block';
-  if(auto){v.muted=true;v.playsInline=true;}
+  v.playsInline=true;
+  if(auto){v.muted=true;}else{v.muted=false;}
   v.play().catch(()=>{});
 }
 function videoFail(n){document.getElementById('vbp'+n).innerHTML=`<span class="vp-icon">🎬</span><span class="vp-name">video${n}.mp4 — place in same folder</span>`;}
 new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){loadBigVideo(1,true);}});},{threshold:.4}).observe(document.getElementById('vbc1'));
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){loadBigVideo(2,true);}});},{threshold:.45}).observe(document.getElementById('vbc2'));
 
 /* ── Puzzle ── */
 let pState=[],pSize=4,ePos=0,pMoves=0,pTimer=null,pSecs=0,pRun=false,pSrc='';
@@ -947,7 +974,7 @@ function renderPuzzle(){
       t.style.backgroundImage=`url('${pSrc}')`;t.style.backgroundSize=`${ts*N}px ${ts*N}px`;
       t.style.backgroundPosition=`-${c*ts}px -${r*ts}px`;
       if(v===p)t.classList.add('correct');
-      t.addEventListener('click',()=>tryMove(p));
+      t.addEventListener('pointerup',()=>tryMove(p));
     }
     g.appendChild(t);
   });
