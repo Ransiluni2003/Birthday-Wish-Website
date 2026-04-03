@@ -303,8 +303,8 @@ section{position:relative;z-index:1;}
 @media (max-width: 700px){
   .video-wrap{padding:72px 16px;}
   .video-big-card{border-radius:20px;}
-  .vbc-inner{aspect-ratio:9/16;max-height:78svh;}
-  .vbc-inner video{object-fit:contain;}
+  .vbc-inner{aspect-ratio:auto;max-height:none;}
+  .vbc-inner video{width:100%;height:auto;max-height:78svh;object-fit:fill;object-position:center;}
   .vbc-footer{padding:16px 18px;}
   .vbc-footer-label{font-size:1rem;}
 }
