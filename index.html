@@ -410,6 +410,41 @@ section{position:relative;z-index:1;}
   .quiz-card{padding:24px 18px 26px;}
 }
 
+@media (hover:none) and (pointer:coarse){
+  body{cursor:auto;}
+  #cur,#cur2{display:none;}
+}
+
+@media (max-width: 700px){
+  #musicBar{
+    right:12px;
+    left:12px;
+    bottom:12px;
+    width:auto;
+    border-radius:16px;
+    padding:9px 12px;
+    justify-content:space-between;
+  }
+  .music-title{font-size:.78rem;}
+  .music-hint{font-size:.54rem;letter-spacing:.14em;}
+  .music-bars{margin-left:0;}
+
+  .sec-head{margin-bottom:34px;}
+  .message-wrap,.timeline-wrap,.puzzle-wrap,.wish-wrap{padding:72px 16px;}
+  .quiz-wrap{padding:72px 16px;}
+  .msg-quote{font-size:8rem;top:24px;}
+  .msg-sig{font-size:1.8rem;}
+  footer{padding:86px 16px 22px;}
+}
+
+@media (max-width: 420px){
+  .hero{padding:24px 14px 74px;}
+  .hero-heart{font-size:3.3rem;}
+  .message-wrap,.timeline-wrap,.puzzle-wrap,.wish-wrap,.quiz-wrap{padding:64px 12px;}
+  .puzzle-container{padding:24px 14px 28px;}
+  .wish-btn{padding:16px 34px;font-size:.88rem;}
+}
+
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:8000;}
 .cf{position:absolute;top:-20px;width:8px;height:8px;border-radius:2px;animation:cfFall linear forwards;}
 @keyframes cfFall{to{transform:translateY(110vh) rotate(900deg);opacity:0;}}
